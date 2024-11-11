@@ -12,18 +12,59 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+
+//! `fasyslog` is a fast syslog client written in Rust.
+//!
+//! # Overview
+//!
+//! This crate provides facilities to send log messages via syslog. Support implementations:
+//!
+//! * [RFC-3164 Formatter]: [The BSD syslog Protocol](http://tools.ietf.org/html/rfc3164)
+//! * [RFC-5424 Formatter]: [The Syslog Protocol](http://tools.ietf.org/html/rfc5424)
+//! * [`UdpSender`]: [RFC 5426 - Transmission of Syslog Messages over UDP](http://tools.ietf.org/html/rfc5426)
+//! * [`TcpSender`]: [RFC 6587 - Transmission of Syslog Messages over TCP](http://tools.ietf.org/html/rfc6587)
+//! * (unix only) Unix domain socket sender (datagram or stream)
+//!
+//! [RFC-3164 Formatter]: format::RFC3164Formatter
+//! [RFC-5424 Formatter]: format::RFC5424Formatter
+//! [`UdpSender`]: sender::UdpSender
+//! [`TcpSender`]: sender::TcpSender
+//!
+//! # Example
+//!
+//! Send a message to a remote syslog server:
+//!
+//! ```rust, no_run
+//! let mut sender = fasyslog::sender::tcp_well_known().unwrap();
+//! sender
+//!     .send_rfc3164(fasyslog::Severity::INFORMATIONAL, "Hello, syslog!")
+//!     .unwrap();
+//! sender.flush().unwrap();
+//!
+//! let mut element = fasyslog::SDElement::new("exampleSDID@32473").unwrap();
+//! element.add_param("iut", "3").unwrap();
+//! sender
+//!     .send_rfc5424(
+//!         fasyslog::Severity::NOTICE,
+//!         Some("TCPIN"),
+//!         vec![element],
+//!         "Hello, syslog!",
+//!     )
+//!     .unwrap();
+//! sender.flush().unwrap();
+//! ```
+
 mod facility;
 pub use facility::*;
-
-mod format;
-pub use format::*;
-
-pub mod sender;
 
 mod severity;
 pub use severity::*;
 
 mod structured_data;
 pub use structured_data::*;
+
+pub mod format;
+pub mod sender;
 
 mod internal;

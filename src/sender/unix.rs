@@ -12,25 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fmt;
 use std::io;
 use std::io::BufWriter;
 use std::os::unix::net::UnixDatagram;
 use std::os::unix::net::UnixStream;
 use std::path::Path;
 
-use crate::impl_syslog_sender;
+use crate::format::SyslogContext;
+use crate::sender::internal::impl_datagram_syslog_sender;
+use crate::sender::internal::impl_stream_syslog_sender;
 use crate::sender::SyslogSender;
-use crate::SyslogContext;
 
 /// Create a Unix datagram sender that sends messages to the given path.
-pub fn unix_datagram(path: impl AsRef<Path>) -> io::Result<SyslogSender> {
-    UnixDatagramSender::connect(path).map(SyslogSender::UnixDatagram)
+pub fn unix_datagram(path: impl AsRef<Path>) -> io::Result<UnixDatagramSender> {
+    UnixDatagramSender::connect(path)
 }
 
 /// Create a Unix stream sender that sends messages to the given path.
-pub fn unix_stream(path: impl AsRef<Path>) -> io::Result<SyslogSender> {
-    UnixStreamSender::connect(path).map(SyslogSender::UnixStream)
+pub fn unix_stream(path: impl AsRef<Path>) -> io::Result<UnixStreamSender> {
+    UnixStreamSender::connect(path)
 }
 
 /// Create a Unix sender that sends messages to the given path.
@@ -40,9 +40,9 @@ pub fn unix(path: impl AsRef<Path>) -> io::Result<SyslogSender> {
     const EPROTOTYPE: i32 = nix::errno::Errno::EPROTOTYPE as i32;
     let path = path.as_ref();
     match unix_datagram(path) {
-        Ok(sender) => Ok(sender),
+        Ok(sender) => Ok(SyslogSender::UnixDatagram(sender)),
         Err(err) => match err.raw_os_error() {
-            Some(EPROTOTYPE) => unix_stream(path),
+            Some(EPROTOTYPE) => unix_stream(path).map(SyslogSender::UnixStream),
             _ => Err(err),
         },
     }
@@ -70,7 +70,7 @@ pub fn unix_well_known() -> io::Result<SyslogSender> {
 /// `/dev/log`, `/var/run/syslog`, or `/var/run/log`.
 #[derive(Debug)]
 pub struct UnixDatagramSender {
-    socket: UnixDatagramWriteAdapter,
+    socket: UnixDatagram,
     context: SyslogContext,
 }
 
@@ -80,7 +80,7 @@ impl UnixDatagramSender {
         let socket = UnixDatagram::unbound()?;
         socket.connect(path)?;
         Ok(Self {
-            socket: UnixDatagramWriteAdapter { socket },
+            socket,
             context: SyslogContext::default(),
         })
     }
@@ -96,27 +96,7 @@ impl UnixDatagramSender {
     }
 }
 
-impl_syslog_sender!(UnixDatagramSender, context, socket);
-
-#[derive(Debug)]
-struct UnixDatagramWriteAdapter {
-    socket: UnixDatagram,
-}
-
-impl io::Write for UnixDatagramWriteAdapter {
-    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
-        self.socket.send(bytes)
-    }
-
-    fn flush(&mut self) -> io::Result<()> {
-        Ok(())
-    }
-
-    // HACK - without this method, the 'write!' macro will be fragmented into multiple write calls
-    fn write_fmt(&mut self, fmt: fmt::Arguments<'_>) -> io::Result<()> {
-        self.write_all(fmt.to_string().as_bytes())
-    }
-}
+impl_datagram_syslog_sender!(UnixDatagramSender, socket);
 
 /// A syslog sender that sends messages to a Unix stream socket.
 ///
@@ -147,12 +127,6 @@ impl UnixStreamSender {
     pub fn mut_context(&mut self) -> &mut SyslogContext {
         &mut self.context
     }
-
-    /// Flush the writer.
-    pub fn flush(&mut self) -> io::Result<()> {
-        use std::io::Write;
-        self.writer.flush()
-    }
 }
 
-impl_syslog_sender!(UnixStreamSender, context, writer);
+impl_stream_syslog_sender!(UnixStreamSender, writer);

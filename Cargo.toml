@@ -24,6 +24,10 @@ license = "Apache-2.0"
 repository = "https://github.com/fast/fasyslog"
 rust-version = "1.75.0"
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 jiff = { version = "0.1.14" }
 

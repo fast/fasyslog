@@ -32,11 +32,6 @@ pub(crate) fn hostname() -> Option<OsString> {
         // not the name of the cluster virtual server.
         pub const COMPUTER_NAME_PHYSICAL_DNS_HOSTNAME: i32 = 5;
 
-        // The DNS host name of the local computer. If the local computer is a node
-        // in a cluster, lpBuffer receives the DNS host name of the local computer,
-        // not the name of the cluster virtual server.
-        pub const COMPUTER_NAME_PHYSICAL_DNS_HOSTNAME: i32 = 5;
-
         // https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getcomputernameexw
         ::windows_targets::link!("kernel32.dll" "system" fn GetComputerNameExW(nametype: i32, lpbuffer: *mut u16, nsize: *mut u32) -> i32);
 

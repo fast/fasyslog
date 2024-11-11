@@ -21,10 +21,10 @@ use std::fmt;
 /// Each SD-PARAM consists of a name, referred to as PARAM-NAME, and a value, referred to as
 /// PARAM-VALUE.
 #[derive(Clone, Debug, PartialEq, Eq)]
-#[non_exhaustive] // only allow construction via the `new` function
 pub struct SDParam {
     pub name: String,
     pub value: String,
+    _private: (), // only allow construction via the `new` function
 }
 
 impl SDParam {
@@ -33,7 +33,11 @@ impl SDParam {
         let name = name.into();
         Self::validate_name(&name)?;
         let value = value.into();
-        Ok(Self { name, value })
+        Ok(Self {
+            name,
+            value,
+            _private: (),
+        })
     }
 
     /// Return the escaped PARAM-VALUE (RFC-5424 §6.3.3).

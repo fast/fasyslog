@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use fasyslog::sender::SyslogSender;
+
 mod shared;
 
 fn main() {
     let sender = fasyslog::sender::udp_well_known().unwrap();
-    shared::send_syslog_message(sender);
+    shared::send_syslog_message(SyslogSender::Udp(sender));
 }

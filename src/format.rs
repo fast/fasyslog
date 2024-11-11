@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//! Format Syslog messages according to the referred standards.
+
 use std::fmt;
 use std::fmt::Formatter;
 
@@ -123,28 +125,6 @@ impl SyslogContext {
             message,
         }
     }
-
-    /// Format the Syslog message with the given severity as defined in RFC-5425.
-    pub fn format_rfc5425<S, M>(
-        &self,
-        severity: Severity,
-        msgid: Option<S>,
-        elements: Vec<SDElement>,
-        message: Option<M>,
-    ) -> RFC5425Formatter<M>
-    where
-        S: Into<String>,
-        M: fmt::Display,
-    {
-        let msgid = msgid.map(|s| s.into());
-        RFC5425Formatter {
-            context: self,
-            severity,
-            msgid,
-            elements,
-            message,
-        }
-    }
 }
 
 /// Shared format logic for nullable value.
@@ -188,6 +168,9 @@ where
     }
 }
 
+/// Format the Syslog message as [RFC 5424] (The Syslog Protocol)
+///
+/// [RFC 5424]: https://tools.ietf.org/html/rfc5424
 #[derive(Debug)]
 pub struct RFC5424Formatter<'a, M> {
     context: &'a SyslogContext,
@@ -230,37 +213,5 @@ where
             write!(f, " {}", message)?;
         }
         Ok(())
-    }
-}
-
-#[derive(Debug)]
-pub struct RFC5425Formatter<'a, M> {
-    context: &'a SyslogContext,
-    severity: Severity,
-    msgid: Option<String>,
-    elements: Vec<SDElement>,
-    message: Option<M>,
-}
-
-impl<M> fmt::Display for RFC5425Formatter<'_, M>
-where
-    M: fmt::Display,
-{
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        // The RFC-5425 format is defined as 'MSG-LEN SP SYSLOG-MSG',
-        // where SYSLOG-MSG is defined as in RFC-5424.
-        // https://datatracker.ietf.org/doc/html/rfc5425#section-4.3
-        let rfc5424_payload = format!(
-            "{}",
-            RFC5424Formatter {
-                context: self.context,
-                severity: self.severity,
-                msgid: self.msgid.clone(),
-                elements: self.elements.clone(),
-                message: self.message.as_ref()
-            }
-        );
-        let msg_len = rfc5424_payload.len();
-        write!(f, "{msg_len} {rfc5424_payload}")
     }
 }

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//! Send syslog messages to a syslog server.
+
 use std::fmt;
 use std::io;
 
@@ -29,56 +31,9 @@ pub use tcp::*;
 mod udp;
 pub use udp::*;
 
-#[macro_export]
-macro_rules! impl_syslog_sender {
-    ($sender:ident, $context:ident, $writer:ident) => {
-        impl $sender {
-            /// Send a message with the given severity as defined in RFC-3164.
-            pub fn send_rfc3164<M: std::fmt::Display>(
-                &mut self,
-                severity: $crate::Severity,
-                message: M,
-            ) -> std::io::Result<()> {
-                use std::io::Write;
-                let message = &self.$context.format_rfc3164(severity, Some(message));
-                write!(&mut self.$writer, "{message}")
-            }
+pub(crate) mod internal;
 
-            /// Send a message with the given severity as defined in RFC-5424.
-            pub fn send_rfc5424<S: Into<String>, M: std::fmt::Display>(
-                &mut self,
-                severity: $crate::Severity,
-                msgid: Option<S>,
-                elements: Vec<$crate::SDElement>,
-                message: M,
-            ) -> std::io::Result<()> {
-                use std::io::Write;
-                let message =
-                    &self
-                        .$context
-                        .format_rfc5424(severity, msgid, elements, Some(message));
-                write!(&mut self.$writer, "{message}")
-            }
-
-            /// Send a message with the given severity as defined in RFC-5425.
-            pub fn send_rfc5425<S: Into<String>, M: std::fmt::Display>(
-                &mut self,
-                severity: $crate::Severity,
-                msgid: Option<S>,
-                elements: Vec<$crate::SDElement>,
-                message: M,
-            ) -> std::io::Result<()> {
-                use std::io::Write;
-                let message =
-                    &self
-                        .$context
-                        .format_rfc5425(severity, msgid, elements, Some(message));
-                write!(&mut self.$writer, "{message}")
-            }
-        }
-    };
-}
-
+/// Static dispatch for the different sender types.
 #[derive(Debug)]
 pub enum SyslogSender {
     Tcp(TcpSender),
@@ -124,28 +79,6 @@ impl SyslogSender {
             #[cfg(unix)]
             SyslogSender::UnixStream(sender) => {
                 sender.send_rfc5424(severity, msgid, elements, message)
-            }
-        }
-    }
-
-    /// Send a message with the given severity as defined in RFC-5425.
-    pub fn send_rfc5425<S: Into<String>, M: fmt::Display>(
-        &mut self,
-        severity: Severity,
-        msgid: Option<S>,
-        elements: Vec<SDElement>,
-        message: M,
-    ) -> io::Result<()> {
-        match self {
-            SyslogSender::Tcp(sender) => sender.send_rfc5425(severity, msgid, elements, message),
-            SyslogSender::Udp(sender) => sender.send_rfc5425(severity, msgid, elements, message),
-            #[cfg(unix)]
-            SyslogSender::UnixDatagram(sender) => {
-                sender.send_rfc5425(severity, msgid, elements, message)
-            }
-            #[cfg(unix)]
-            SyslogSender::UnixStream(sender) => {
-                sender.send_rfc5425(severity, msgid, elements, message)
             }
         }
     }
