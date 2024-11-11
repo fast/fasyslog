@@ -87,11 +87,11 @@ impl SyslogSender {
     pub fn flush(&mut self) -> io::Result<()> {
         match self {
             SyslogSender::Tcp(sender) => sender.flush(),
-            SyslogSender::UnixStream(sender) => sender.flush(),
-            #[cfg(unix)]
             SyslogSender::Udp(_) => Ok(()),
             #[cfg(unix)]
             SyslogSender::UnixDatagram(_) => Ok(()),
+            #[cfg(unix)]
+            SyslogSender::UnixStream(sender) => sender.flush(),
         }
     }
 }
