@@ -31,8 +31,6 @@ pub use tcp::*;
 mod udp;
 pub use udp::*;
 
-pub(crate) mod internal;
-
 /// Static dispatch for the different sender types.
 #[derive(Debug)]
 pub enum SyslogSender {

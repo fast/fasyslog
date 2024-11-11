@@ -19,9 +19,9 @@ use std::os::unix::net::UnixStream;
 use std::path::Path;
 
 use crate::format::SyslogContext;
-use crate::sender::internal::impl_datagram_syslog_sender;
-use crate::sender::internal::impl_stream_syslog_sender;
 use crate::sender::SyslogSender;
+use crate::SDElement;
+use crate::Severity;
 
 /// Create a Unix datagram sender that sends messages to the given path.
 pub fn unix_datagram(path: impl AsRef<Path>) -> io::Result<UnixDatagramSender> {
@@ -94,9 +94,33 @@ impl UnixDatagramSender {
     pub fn mut_context(&mut self) -> &mut SyslogContext {
         &mut self.context
     }
-}
 
-impl_datagram_syslog_sender!(UnixDatagramSender, socket);
+    /// Send a message with the given severity as defined in RFC-3164.
+    pub fn send_rfc3164<M: std::fmt::Display>(
+        &mut self,
+        severity: Severity,
+        message: M,
+    ) -> io::Result<()> {
+        let message = self.context.format_rfc3164(severity, Some(message));
+        self.socket.send(message.to_string().as_bytes())?;
+        Ok(())
+    }
+
+    /// Send a message with the given severity as defined in RFC-5424.
+    pub fn send_rfc5424<S: Into<String>, M: std::fmt::Display>(
+        &mut self,
+        severity: Severity,
+        msgid: Option<S>,
+        elements: Vec<SDElement>,
+        message: M,
+    ) -> io::Result<()> {
+        let message = self
+            .context
+            .format_rfc5424(severity, msgid, elements, Some(message));
+        self.socket.send(message.to_string().as_bytes())?;
+        Ok(())
+    }
+}
 
 /// A syslog sender that sends messages to a Unix stream socket.
 ///
@@ -127,6 +151,40 @@ impl UnixStreamSender {
     pub fn mut_context(&mut self) -> &mut SyslogContext {
         &mut self.context
     }
-}
 
-impl_stream_syslog_sender!(UnixStreamSender, writer);
+    /// Send a message with the given severity as defined in RFC-3164.
+    pub fn send_rfc3164<M: std::fmt::Display>(
+        &mut self,
+        severity: Severity,
+        message: M,
+    ) -> io::Result<()> {
+        use std::io::Write;
+        let message = self.context.format_rfc3164(severity, Some(message));
+        write!(&mut self.writer, "{}", message)?;
+        self.writer.write_all(&[0; 1])?;
+        Ok(())
+    }
+
+    /// Send a message with the given severity as defined in RFC-5424.
+    pub fn send_rfc5424<S: Into<String>, M: std::fmt::Display>(
+        &mut self,
+        severity: Severity,
+        msgid: Option<S>,
+        elements: Vec<SDElement>,
+        message: M,
+    ) -> io::Result<()> {
+        use std::io::Write;
+        let message = self
+            .context
+            .format_rfc5424(severity, msgid, elements, Some(message));
+        write!(&mut self.writer, "{}", message)?;
+        self.writer.write_all(&[0; 1])?;
+        Ok(())
+    }
+
+    /// Flush the writer.
+    pub fn flush(&mut self) -> io::Result<()> {
+        use std::io::Write;
+        self.writer.flush()
+    }
+}

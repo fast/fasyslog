@@ -12,12 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod shared;
+use fasyslog::Severity;
 
 #[cfg(unix)]
 fn main() {
-    let sender = fasyslog::sender::unix_well_known().unwrap();
-    shared::send_syslog_message(sender);
+    let mut sender = fasyslog::sender::unix_well_known().unwrap();
+    let mut generator = names::Generator::default();
+    for _ in 0..100 {
+        let name = generator.next().unwrap();
+        let message = format!("Hello, {name}!");
+        sender.send_rfc3164(Severity::ERROR, message).unwrap();
+    }
+    sender.flush().unwrap();
 }
 
 #[cfg(not(unix))]

@@ -19,7 +19,8 @@ use std::net::TcpStream;
 use std::net::ToSocketAddrs;
 
 use crate::format::SyslogContext;
-use crate::sender::internal::impl_stream_syslog_sender;
+use crate::SDElement;
+use crate::Severity;
 
 /// Create a TCP sender that sends messages to the well-known port (601).
 ///
@@ -72,6 +73,36 @@ impl TcpSender {
     pub fn mut_context(&mut self) -> &mut SyslogContext {
         &mut self.context
     }
-}
 
-impl_stream_syslog_sender!(TcpSender, writer);
+    /// Send a message with the given severity as defined in RFC-3164.
+    pub fn send_rfc3164<M: std::fmt::Display>(
+        &mut self,
+        severity: Severity,
+        message: M,
+    ) -> io::Result<()> {
+        use std::io::Write;
+        let message = self.context.format_rfc3164(severity, Some(message));
+        write!(&mut self.writer, "{}{}", message, self.postfix)
+    }
+
+    /// Send a message with the given severity as defined in RFC-5424.
+    pub fn send_rfc5424<S: Into<String>, M: std::fmt::Display>(
+        &mut self,
+        severity: Severity,
+        msgid: Option<S>,
+        elements: Vec<SDElement>,
+        message: M,
+    ) -> io::Result<()> {
+        use std::io::Write;
+        let message = self
+            .context
+            .format_rfc5424(severity, msgid, elements, Some(message));
+        write!(&mut self.writer, "{}{}", message, self.postfix)
+    }
+
+    /// Flush the writer.
+    pub fn flush(&mut self) -> io::Result<()> {
+        use std::io::Write;
+        self.writer.flush()
+    }
+}

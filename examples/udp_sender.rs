@@ -12,11 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use fasyslog::sender::SyslogSender;
-
-mod shared;
+use fasyslog::Severity;
 
 fn main() {
-    let sender = fasyslog::sender::udp_well_known().unwrap();
-    shared::send_syslog_message(SyslogSender::Udp(sender));
+    let mut sender = fasyslog::sender::udp_well_known().unwrap();
+    let mut generator = names::Generator::default();
+    for _ in 0..100 {
+        let name = generator.next().unwrap();
+        let message = format!("Hello, {name}!");
+        let mut element = fasyslog::SDElement::new("exampleSDID@16253").unwrap();
+        element.add_param("jno", "sul").unwrap();
+        sender
+            .send_rfc5424(Severity::ERROR, Some("UDPIN"), vec![element], message)
+            .unwrap();
+    }
 }
