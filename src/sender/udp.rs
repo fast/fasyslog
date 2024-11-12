@@ -17,8 +17,7 @@ use std::net::ToSocketAddrs;
 use std::net::UdpSocket;
 
 use crate::format::SyslogContext;
-use crate::SDElement;
-use crate::Severity;
+use crate::sender::internal::impl_syslog_sender_common;
 
 /// Create a UDP sender that sends messages to the well-known port (514).
 ///
@@ -62,29 +61,11 @@ impl UdpSender {
         &mut self.context
     }
 
-    /// Send a message with the given severity as defined in RFC-3164.
-    pub fn send_rfc3164<M: std::fmt::Display>(
-        &mut self,
-        severity: Severity,
-        message: M,
-    ) -> io::Result<()> {
-        let message = self.context.format_rfc3164(severity, Some(message));
-        self.socket.send(message.to_string().as_bytes())?;
-        Ok(())
-    }
-
-    /// Send a message with the given severity as defined in RFC-5424.
-    pub fn send_rfc5424<S: Into<String>, M: std::fmt::Display>(
-        &mut self,
-        severity: Severity,
-        msgid: Option<S>,
-        elements: Vec<SDElement>,
-        message: M,
-    ) -> io::Result<()> {
-        let message = self
-            .context
-            .format_rfc5424(severity, msgid, elements, Some(message));
-        self.socket.send(message.to_string().as_bytes())?;
+    /// Send a pre-formatted message.
+    pub fn send_formatted(&mut self, formatted: &[u8]) -> io::Result<()> {
+        self.socket.send(formatted)?;
         Ok(())
     }
 }
+
+impl_syslog_sender_common!(UdpSender);

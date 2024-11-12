@@ -15,12 +15,12 @@
 use std::borrow::Cow;
 use std::io;
 use std::io::BufWriter;
+use std::io::Write;
 use std::net::TcpStream;
 use std::net::ToSocketAddrs;
 
 use crate::format::SyslogContext;
-use crate::SDElement;
-use crate::Severity;
+use crate::sender::internal::impl_syslog_sender_common;
 
 /// Create a TCP sender that sends messages to the well-known port (601).
 ///
@@ -74,30 +74,11 @@ impl TcpSender {
         &mut self.context
     }
 
-    /// Send a message with the given severity as defined in RFC-3164.
-    pub fn send_rfc3164<M: std::fmt::Display>(
-        &mut self,
-        severity: Severity,
-        message: M,
-    ) -> io::Result<()> {
-        use std::io::Write;
-        let message = self.context.format_rfc3164(severity, Some(message));
-        write!(&mut self.writer, "{}{}", message, self.postfix)
-    }
-
-    /// Send a message with the given severity as defined in RFC-5424.
-    pub fn send_rfc5424<S: Into<String>, M: std::fmt::Display>(
-        &mut self,
-        severity: Severity,
-        msgid: Option<S>,
-        elements: Vec<SDElement>,
-        message: M,
-    ) -> io::Result<()> {
-        use std::io::Write;
-        let message = self
-            .context
-            .format_rfc5424(severity, msgid, elements, Some(message));
-        write!(&mut self.writer, "{}{}", message, self.postfix)
+    /// Send a pre-formatted message.
+    pub fn send_formatted(&mut self, formatted: &[u8]) -> io::Result<()> {
+        self.writer.write_all(formatted)?;
+        self.writer.write_all(self.postfix.as_bytes())?;
+        Ok(())
     }
 
     /// Flush the writer.
@@ -106,3 +87,5 @@ impl TcpSender {
         self.writer.flush()
     }
 }
+
+impl_syslog_sender_common!(TcpSender);

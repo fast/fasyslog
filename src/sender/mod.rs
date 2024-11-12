@@ -31,6 +31,8 @@ pub use tcp::*;
 mod udp;
 pub use udp::*;
 
+pub(crate) mod internal;
+
 /// Static dispatch for the different sender types.
 #[derive(Debug)]
 pub enum SyslogSender {
@@ -78,6 +80,18 @@ impl SyslogSender {
             SyslogSender::UnixStream(sender) => {
                 sender.send_rfc5424(severity, msgid, elements, message)
             }
+        }
+    }
+
+    /// Send a pre-formatted message.
+    pub fn send_formatted(&mut self, formatted: &[u8]) -> io::Result<()> {
+        match self {
+            SyslogSender::Tcp(sender) => sender.send_formatted(formatted),
+            SyslogSender::Udp(sender) => sender.send_formatted(formatted),
+            #[cfg(unix)]
+            SyslogSender::UnixDatagram(sender) => sender.send_formatted(formatted),
+            #[cfg(unix)]
+            SyslogSender::UnixStream(sender) => sender.send_formatted(formatted),
         }
     }
 
