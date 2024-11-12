@@ -96,6 +96,14 @@ impl SyslogSender {
     }
 
     /// Flush the underlying writer if needed.
+    ///
+    /// When the underlying writer is a streaming writer (TCP, UnixStream, etc.), periodically
+    /// flush is essential to ensure that the message is sent to the syslog server [1].
+    ///
+    /// When the underlying writer is a datagram writer (UDP, UnixDatagram, etc.), flush is a no-op,
+    /// and every call to `send_xxx` defines the boundary of the packet.
+    ///
+    /// [1]: https://github.com/Geal/rust-syslog/issues/69
     pub fn flush(&mut self) -> io::Result<()> {
         match self {
             SyslogSender::Tcp(sender) => sender.flush(),

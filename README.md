@@ -34,6 +34,52 @@ Add `fasyslog` to your `Cargo.toml`:
 cargo add fasyslog
 ```
 
+```rust
+use fasyslog::Severity;
+
+fn main() {
+    let mut sender = fasyslog::sender::tcp_well_known().unwrap();
+    let message = format!("Hello, fasyslog!");
+    // send a message with RFC 3164 format
+    sender.send_rfc3164(Severity::ERROR, message).unwrap();
+    sender.flush().unwrap();
+
+    // send a message with RFC 5424 format
+    const EMPTY_MSGID: Option<&str> = None;
+    const EMPTY_STRUCTURED_DATA: Vec<fasyslog::SDElement> = Vec::new();
+    sender.send_rfc5424(Severity::ERROR, EMPTY_MSGID, EMPTY_STRUCTURED_DATA, message).unwrap();
+    sender.flush().unwrap();
+}
+```
+
+If you'd like to integrate with `log` crate, you can try the `logforth` example:
+
+```toml
+[dependencies]
+log = { version = "..." }
+logforth = { version = "...", features = ["syslog"] }
+```
+
+```rust
+use logforth::append::syslog;
+use logforth::append::syslog::Syslog;
+use logforth::append::syslog::SyslogWriter;
+
+fn main() {
+    let syslog_writer = SyslogWriter::tcp_well_known().unwrap();
+    let (non_blocking, _guard) = syslog::non_blocking(syslog_writer).finish();
+
+    logforth::builder()
+        .dispatch(|d| {
+            d.filter(log::LevelFilter::Trace)
+                .append(Syslog::new(non_blocking))
+        })
+        .apply();
+
+    log::info!("This log will be written to syslog.");
+}
+```
+
 ## Example
 
 Check the [examples](examples) directory for more examples.

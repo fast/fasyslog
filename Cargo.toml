@@ -42,3 +42,18 @@ windows-targets = { version = "0.52.6" }
 
 [dev-dependencies]
 names = { version = "0.14.0", default-features = false }
+
+[[example]]
+doc-scrape-examples = true
+name = "tcp_sender"
+path = "examples/tcp_sender.rs"
+
+[[example]]
+doc-scrape-examples = true
+name = "udp_sender"
+path = "examples/udp_sender.rs"
+
+[[example]]
+doc-scrape-examples = true
+name = "unix_sender"
+path = "examples/unix_sender.rs"
