@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::borrow::Cow;
 use std::io;
 use std::io::BufWriter;
 use std::io::Write;
@@ -50,9 +51,7 @@ pub fn unix(path: impl AsRef<Path>) -> io::Result<SyslogSender> {
 
 pub fn unix_well_known() -> io::Result<SyslogSender> {
     cfg_if::cfg_if! {
-        if #[cfg(target_os = "linux")] {
-            unix("/dev/log")
-        } else if #[cfg(target_os = "macos")] {
+       if #[cfg(target_os = "macos")] {
             // NOTE: This may not work on Monterey (12.x) and above,
             //  see also https://github.com/python/cpython/issues/91070.
             unix("/var/run/syslog")
@@ -112,6 +111,7 @@ impl_syslog_sender_common!(UnixDatagramSender);
 pub struct UnixStreamSender {
     writer: BufWriter<UnixStream>,
     context: SyslogContext,
+    postfix: Cow<'static, str>,
 }
 
 impl UnixStreamSender {
@@ -121,7 +121,15 @@ impl UnixStreamSender {
         Ok(Self {
             writer: BufWriter::new(socket),
             context: SyslogContext::default(),
+            postfix: Cow::Borrowed("\r\n"),
         })
+    }
+
+    /// Set the postfix when formatting Syslog message.
+    ///
+    /// Default is "\r\n". You can use empty string to set no postfix.
+    pub fn set_postfix(&mut self, postfix: impl Into<Cow<'static, str>>) {
+        self.postfix = postfix.into();
     }
 
     /// Set the context when formatting Syslog message.
@@ -137,7 +145,7 @@ impl UnixStreamSender {
     /// Send a pre-formatted message.
     pub fn send_formatted(&mut self, formatted: &[u8]) -> io::Result<()> {
         self.writer.write_all(formatted)?;
-        self.writer.write_all(&[0; 1])?;
+        self.writer.write_all(self.postfix.as_bytes())?;
         Ok(())
     }
 
