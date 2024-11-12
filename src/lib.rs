@@ -20,10 +20,10 @@
 //!
 //! This crate provides facilities to send log messages via syslog. Support implementations:
 //!
-//! * [RFC-3164 Formatter]: [The BSD syslog Protocol](http://tools.ietf.org/html/rfc3164)
-//! * [RFC-5424 Formatter]: [The Syslog Protocol](http://tools.ietf.org/html/rfc5424)
-//! * [`UdpSender`]: [RFC 5426 - Transmission of Syslog Messages over UDP](http://tools.ietf.org/html/rfc5426)
-//! * [`TcpSender`]: [RFC 6587 - Transmission of Syslog Messages over TCP](http://tools.ietf.org/html/rfc6587)
+//! * [RFC-3164 Formatter]: [The BSD syslog Protocol](https://datatracker.ietf.org/doc/html/rfc3164)
+//! * [RFC-5424 Formatter]: [The Syslog Protocol](https://datatracker.ietf.org/doc/html/rfc5424)
+//! * [`UdpSender`]: [RFC 5426 - Transmission of Syslog Messages over UDP](https://datatracker.ietf.org/doc/html/rfc5426)
+//! * [`TcpSender`]: [RFC 6587 - Transmission of Syslog Messages over TCP](https://datatracker.ietf.org/doc/html/rfc6587)
 //! * (unix only) Unix domain socket sender (datagram or stream)
 //!
 //! [RFC-3164 Formatter]: format::RFC3164Formatter

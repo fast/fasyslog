@@ -17,7 +17,7 @@ use std::str::FromStr;
 
 /// Syslog severity as defined in [RFC 5424] (The Syslog Protocol).
 ///
-/// [RFC 5424]: https://tools.ietf.org/html/rfc5424.
+/// [RFC 5424]: https://datatracker.ietf.org/doc/html/rfc5424.
 #[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq)]
 #[repr(u8)]
 pub enum Severity {

@@ -19,8 +19,8 @@ use std::str::FromStr;
 ///
 /// See also [RFC 5427] (Textual Conventions for Syslog Management) for the labels.
 ///
-/// [RFC 5424]: https://tools.ietf.org/html/rfc5424.
-/// [RFC 5427]: https://tools.ietf.org/html/rfc5427.
+/// [RFC 5424]: https://datatracker.ietf.org/doc/html/rfc5424.
+/// [RFC 5427]: https://datatracker.ietf.org/doc/html/rfc5427.
 #[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq)]
 #[repr(u8)]
 pub enum Facility {

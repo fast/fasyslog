@@ -59,7 +59,7 @@ impl TcpSender {
     ///
     /// This is generally '\r\n' as defined in [RFC-6587] §3.4.2.
     ///
-    /// [RFC-6587]: https://tools.ietf.org/html/rfc6587
+    /// [RFC-6587]: https://datatracker.ietf.org/doc/html/rfc6587
     pub fn set_postfix(&mut self, postfix: impl Into<Cow<'static, str>>) {
         self.postfix = postfix.into();
     }

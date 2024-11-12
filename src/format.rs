@@ -134,7 +134,7 @@ fn nullable_value(value: Option<&str>) -> &str {
 
 /// Format the Syslog message as [RFC-3164] (BSD syslog Protocol).
 ///
-/// [RFC-3164]: https://tools.ietf.org/html/rfc3164
+/// [RFC-3164]: https://datatracker.ietf.org/doc/html/rfc3164
 #[derive(Debug)]
 pub struct RFC3164Formatter<'a, M> {
     context: &'a SyslogContext,
@@ -170,7 +170,7 @@ where
 
 /// Format the Syslog message as [RFC 5424] (The Syslog Protocol)
 ///
-/// [RFC 5424]: https://tools.ietf.org/html/rfc5424
+/// [RFC 5424]: https://datatracker.ietf.org/doc/html/rfc5424
 #[derive(Debug)]
 pub struct RFC5424Formatter<'a, M> {
     context: &'a SyslogContext,
