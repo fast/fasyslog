@@ -55,5 +55,10 @@ path = "examples/udp_sender.rs"
 
 [[example]]
 doc-scrape-examples = true
+name = "broadcast_sender"
+path = "examples/broadcast_sender.rs"
+
+[[example]]
+doc-scrape-examples = true
 name = "unix_sender"
 path = "examples/unix_sender.rs"

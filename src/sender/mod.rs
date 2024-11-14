@@ -38,6 +38,7 @@ pub(crate) mod internal;
 pub enum SyslogSender {
     Tcp(TcpSender),
     Udp(UdpSender),
+    Broadcast(BroadcastSender),
     #[cfg(unix)]
     UnixDatagram(UnixDatagramSender),
     #[cfg(unix)]
@@ -54,6 +55,7 @@ impl SyslogSender {
         match self {
             SyslogSender::Tcp(sender) => sender.send_rfc3164(severity, message),
             SyslogSender::Udp(sender) => sender.send_rfc3164(severity, message),
+            SyslogSender::Broadcast(sender) => sender.send_rfc3164(severity, message),
             #[cfg(unix)]
             SyslogSender::UnixDatagram(sender) => sender.send_rfc3164(severity, message),
             #[cfg(unix)]
@@ -72,6 +74,9 @@ impl SyslogSender {
         match self {
             SyslogSender::Tcp(sender) => sender.send_rfc5424(severity, msgid, elements, message),
             SyslogSender::Udp(sender) => sender.send_rfc5424(severity, msgid, elements, message),
+            SyslogSender::Broadcast(sender) => {
+                sender.send_rfc5424(severity, msgid, elements, message)
+            }
             #[cfg(unix)]
             SyslogSender::UnixDatagram(sender) => {
                 sender.send_rfc5424(severity, msgid, elements, message)
@@ -88,6 +93,7 @@ impl SyslogSender {
         match self {
             SyslogSender::Tcp(sender) => sender.send_formatted(formatted),
             SyslogSender::Udp(sender) => sender.send_formatted(formatted),
+            SyslogSender::Broadcast(sender) => sender.send_formatted(formatted),
             #[cfg(unix)]
             SyslogSender::UnixDatagram(sender) => sender.send_formatted(formatted),
             #[cfg(unix)]
@@ -107,7 +113,7 @@ impl SyslogSender {
     pub fn flush(&mut self) -> io::Result<()> {
         match self {
             SyslogSender::Tcp(sender) => sender.flush(),
-            SyslogSender::Udp(_) => Ok(()),
+            SyslogSender::Udp(_) | SyslogSender::Broadcast(_) => Ok(()),
             #[cfg(unix)]
             SyslogSender::UnixDatagram(_) => Ok(()),
             #[cfg(unix)]

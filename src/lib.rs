@@ -24,12 +24,14 @@
 //! * [RFC-5424 Formatter]: [The Syslog Protocol](https://datatracker.ietf.org/doc/html/rfc5424)
 //! * [`UdpSender`]: [RFC 5426 - Transmission of Syslog Messages over UDP](https://datatracker.ietf.org/doc/html/rfc5426)
 //! * [`TcpSender`]: [RFC 6587 - Transmission of Syslog Messages over TCP](https://datatracker.ietf.org/doc/html/rfc6587)
+//! * [`BroadcastSender`]: Broadcast UDP syslog messages.
 //! * (unix only) Unix domain socket sender (datagram or stream)
 //!
 //! [RFC-3164 Formatter]: format::RFC3164Formatter
 //! [RFC-5424 Formatter]: format::RFC5424Formatter
 //! [`UdpSender`]: sender::UdpSender
 //! [`TcpSender`]: sender::TcpSender
+//! [`BroadcastSender`]: sender::BroadcastSender
 //!
 //! # Example
 //!
