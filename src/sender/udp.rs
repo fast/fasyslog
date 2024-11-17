@@ -42,7 +42,7 @@ pub fn broadcast_well_known() -> io::Result<UdpSender> {
     broadcast(514)
 }
 
-/// Create a UDP sender that broadcast messages
+/// Create a UDP sender that broadcast messages to the given port.
 pub fn broadcast(port: u16) -> io::Result<UdpSender> {
     let socket = UdpSocket::bind("0.0.0.0:0")?;
     socket.set_broadcast(true)?;
@@ -68,7 +68,7 @@ impl UdpSender {
         Ok(Self::new(socket))
     }
 
-    /// Create a new UDP sender with the given socket and remote address.
+    /// Create a new UDP sender with the given socket.
     ///
     /// This is useful when users want to configure the socket in fine-grained. Note that the
     /// passed `socket` MUST be connected to the remote address.
