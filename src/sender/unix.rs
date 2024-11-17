@@ -15,13 +15,13 @@
 use std::borrow::Cow;
 use std::io;
 use std::io::BufWriter;
-use std::io::Write;
 use std::os::unix::net::UnixDatagram;
 use std::os::unix::net::UnixStream;
 use std::path::Path;
 
 use crate::format::SyslogContext;
 use crate::sender::internal::impl_syslog_sender_common;
+use crate::sender::internal::impl_syslog_stream_send_formatted;
 use crate::sender::SyslogSender;
 
 /// Create a Unix datagram sender that sends messages to the given path.
@@ -141,19 +141,7 @@ impl UnixStreamSender {
     pub fn mut_context(&mut self) -> &mut SyslogContext {
         &mut self.context
     }
-
-    /// Send a pre-formatted message.
-    pub fn send_formatted(&mut self, formatted: &[u8]) -> io::Result<()> {
-        self.writer.write_all(formatted)?;
-        self.writer.write_all(self.postfix.as_bytes())?;
-        Ok(())
-    }
-
-    /// Flush the writer.
-    pub fn flush(&mut self) -> io::Result<()> {
-        use std::io::Write;
-        self.writer.flush()
-    }
 }
 
 impl_syslog_sender_common!(UnixStreamSender);
+impl_syslog_stream_send_formatted!(UnixStreamSender);

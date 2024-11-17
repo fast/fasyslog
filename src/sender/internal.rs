@@ -20,7 +20,7 @@ macro_rules! impl_syslog_sender_common {
                 &mut self,
                 severity: $crate::Severity,
                 message: M,
-            ) -> io::Result<()> {
+            ) -> std::io::Result<()> {
                 let message = self.context.format_rfc3164(severity, Some(message));
                 self.send_formatted(message.to_string().as_bytes())
             }
@@ -32,7 +32,7 @@ macro_rules! impl_syslog_sender_common {
                 msgid: Option<S>,
                 elements: Vec<$crate::SDElement>,
                 message: M,
-            ) -> io::Result<()> {
+            ) -> std::io::Result<()> {
                 let message = self
                     .context
                     .format_rfc5424(severity, msgid, elements, Some(message));
@@ -43,3 +43,25 @@ macro_rules! impl_syslog_sender_common {
 }
 
 pub(crate) use impl_syslog_sender_common;
+
+macro_rules! impl_syslog_stream_send_formatted {
+    ($sender:ident) => {
+        impl $sender {
+            /// Send a formatted message to the stream.
+            pub fn send_formatted(&mut self, message: &[u8]) -> std::io::Result<()> {
+                use std::io::Write;
+                self.writer.write_all(message)?;
+                self.writer.write_all(self.postfix.as_bytes())?;
+                Ok(())
+            }
+
+            /// Flush the stream.
+            pub fn flush(&mut self) -> std::io::Result<()> {
+                use std::io::Write;
+                self.writer.flush()
+            }
+        }
+    };
+}
+
+pub(crate) use impl_syslog_stream_send_formatted;

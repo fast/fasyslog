@@ -94,6 +94,12 @@ This crate is built against the latest stable release, and its minimum supported
 
 The policy is that the minimum Rust version required to use this crate can be increased in minor version updates. For example, if Fasyslog 1.0 requires Rust 1.20.0, then Fasyslog 1.0.z for all values of z will also require Rust 1.20.0 or newer. However, Fasyslog 1.y for y > 0 may require a newer minimum version of Rust.
 
+## When to release a 1.0 version
+
+I'm fine with the current API design and ready for a 1.0 release. Just leave a few months for feedback on the crate's usability. If you have any suggestions or feedback, please open an issue.
+
+I'm going to release a 1.0 version as early as 2025-01.
+
 ## License
 
 This project is licensed under [Apache License, Version 2.0](LICENSE).
