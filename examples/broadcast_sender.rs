@@ -19,11 +19,9 @@ fn main() {
     let mut generator = names::Generator::default();
     for _ in 0..100 {
         let name = generator.next().unwrap();
-        let message = format!("Hello, {name}!");
-        let mut element = fasyslog::SDElement::new("exampleSDID@16253").unwrap();
-        element.add_param("jno", "sul").unwrap();
+        let message = format!("Broadcast {name} to everyone!");
         sender
-            .send_rfc5424(Severity::ERROR, Some("UDPIN"), vec![element], message)
+            .send_rfc5424(Severity::ERROR, None::<String>, Vec::new(), message)
             .unwrap();
     }
 }

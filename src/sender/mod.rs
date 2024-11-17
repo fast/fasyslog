@@ -43,7 +43,6 @@ pub(crate) mod internal;
 pub enum SyslogSender {
     Tcp(TcpSender),
     Udp(UdpSender),
-    Broadcast(BroadcastSender),
     #[cfg(feature = "native-tls")]
     Tls(TlsSender),
     #[cfg(unix)]
@@ -62,7 +61,6 @@ impl SyslogSender {
         match self {
             SyslogSender::Tcp(sender) => sender.send_rfc3164(severity, message),
             SyslogSender::Udp(sender) => sender.send_rfc3164(severity, message),
-            SyslogSender::Broadcast(sender) => sender.send_rfc3164(severity, message),
             #[cfg(feature = "native-tls")]
             SyslogSender::Tls(sender) => sender.send_rfc3164(severity, message),
             #[cfg(unix)]
@@ -83,9 +81,6 @@ impl SyslogSender {
         match self {
             SyslogSender::Tcp(sender) => sender.send_rfc5424(severity, msgid, elements, message),
             SyslogSender::Udp(sender) => sender.send_rfc5424(severity, msgid, elements, message),
-            SyslogSender::Broadcast(sender) => {
-                sender.send_rfc5424(severity, msgid, elements, message)
-            }
             #[cfg(feature = "native-tls")]
             SyslogSender::Tls(sender) => sender.send_rfc5424(severity, msgid, elements, message),
             #[cfg(unix)]
@@ -104,7 +99,6 @@ impl SyslogSender {
         match self {
             SyslogSender::Tcp(sender) => sender.send_formatted(formatted),
             SyslogSender::Udp(sender) => sender.send_formatted(formatted),
-            SyslogSender::Broadcast(sender) => sender.send_formatted(formatted),
             #[cfg(feature = "native-tls")]
             SyslogSender::Tls(sender) => sender.send_formatted(formatted),
             #[cfg(unix)]
@@ -126,7 +120,7 @@ impl SyslogSender {
     pub fn flush(&mut self) -> io::Result<()> {
         match self {
             SyslogSender::Tcp(sender) => sender.flush(),
-            SyslogSender::Udp(_) | SyslogSender::Broadcast(_) => Ok(()),
+            SyslogSender::Udp(_) => Ok(()),
             #[cfg(feature = "native-tls")]
             SyslogSender::Tls(sender) => sender.flush(),
             #[cfg(unix)]

@@ -37,6 +37,8 @@ pub fn tcp<A: ToSocketAddrs>(addr: A) -> io::Result<TcpSender> {
 }
 
 /// A syslog sender that sends messages to a TCP socket.
+///
+/// Users can obtain a `TcpSender` by calling [`tcp_well_known`] or [`tcp`].
 #[derive(Debug)]
 pub struct TcpSender {
     writer: BufWriter<TcpStream>,

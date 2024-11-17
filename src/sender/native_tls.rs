@@ -51,6 +51,8 @@ pub fn tls_with<A: ToSocketAddrs, S: AsRef<str>>(
 }
 
 /// A syslog sender that sends messages to a TCP socket over TLS.
+///
+/// Users can obtain a `TlsSender` by calling [`tls_well_known`], [`tls`], or [`tls_with`].
 #[derive(Debug)]
 pub struct TlsSender {
     writer: BufWriter<TlsStream<TcpStream>>,
