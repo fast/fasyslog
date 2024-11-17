@@ -18,36 +18,59 @@ use std::io::BufWriter;
 use std::net::TcpStream;
 use std::net::ToSocketAddrs;
 
+use native_tls::TlsConnector;
+use native_tls::TlsConnectorBuilder;
+use native_tls::TlsStream;
+
 use crate::format::SyslogContext;
 use crate::sender::internal::impl_syslog_sender_common;
 use crate::sender::internal::impl_syslog_stream_send_formatted;
 
-/// Create a TCP sender that sends messages to the well-known port (601).
+/// Create a TLS sender that sends messages to the well-known port (6514).
 ///
-/// See also [RFC-3195] §9.2 The System (Well-Known) TCP port number for syslog-conn.
+/// See also [RFC-5425] §4.1 Port Assignment.
 ///
-/// [RFC-3195]: https://datatracker.ietf.org/doc/html/rfc3195#section-9.2
-pub fn tcp_well_known() -> io::Result<TcpSender> {
-    tcp("127.0.0.1:601")
+/// [RFC-5425]: https://datatracker.ietf.org/doc/html/rfc5425#section-4.1
+pub fn tls_well_known<S: AsRef<str>>(domain: S) -> io::Result<TlsSender> {
+    let domain = domain.as_ref();
+    tls(format!("{domain}:6514"), domain)
 }
 
-/// Create a TCP sender that sends messages to the given address.
-pub fn tcp<A: ToSocketAddrs>(addr: A) -> io::Result<TcpSender> {
-    TcpSender::connect(addr)
+/// Create a TLS sender that sends messages to the given address.
+pub fn tls<A: ToSocketAddrs, S: AsRef<str>>(addr: A, domain: S) -> io::Result<TlsSender> {
+    tls_with(addr, domain, TlsConnector::builder())
 }
 
-/// A syslog sender that sends messages to a TCP socket.
+/// Create a TLS sender that sends messages to the given address with certificate builder.
+pub fn tls_with<A: ToSocketAddrs, S: AsRef<str>>(
+    addr: A,
+    domain: S,
+    builder: TlsConnectorBuilder,
+) -> io::Result<TlsSender> {
+    TlsSender::connect(addr, domain, builder)
+}
+
+/// A syslog sender that sends messages to a TCP socket over TLS.
 #[derive(Debug)]
-pub struct TcpSender {
-    writer: BufWriter<TcpStream>,
+pub struct TlsSender {
+    writer: BufWriter<TlsStream<TcpStream>>,
     context: SyslogContext,
     postfix: Cow<'static, str>,
 }
 
-impl TcpSender {
-    /// Connect to a TCP socket at the given address.
-    pub fn connect<A: ToSocketAddrs>(addr: A) -> io::Result<Self> {
+impl TlsSender {
+    /// Connect to a TCP socket over TLS at the given address.
+    pub fn connect<A: ToSocketAddrs, S: AsRef<str>>(
+        addr: A,
+        domain: S,
+        builder: TlsConnectorBuilder,
+    ) -> io::Result<Self> {
+        let domain = domain.as_ref();
         let stream = TcpStream::connect(addr)?;
+        let connector = builder.build().map_err(io::Error::other)?;
+        let stream = connector
+            .connect(domain, stream)
+            .map_err(io::Error::other)?;
         Ok(Self {
             writer: BufWriter::new(stream),
             context: SyslogContext::default(),
@@ -75,5 +98,5 @@ impl TcpSender {
     }
 }
 
-impl_syslog_sender_common!(TcpSender);
-impl_syslog_stream_send_formatted!(TcpSender);
+impl_syslog_sender_common!(TlsSender);
+impl_syslog_stream_send_formatted!(TlsSender);

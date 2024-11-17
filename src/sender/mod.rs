@@ -25,6 +25,11 @@ mod unix;
 #[cfg(unix)]
 pub use unix::*;
 
+#[cfg(feature = "native-tls")]
+mod native_tls;
+#[cfg(feature = "native-tls")]
+pub use native_tls::*;
+
 mod tcp;
 pub use tcp::*;
 
@@ -39,6 +44,8 @@ pub enum SyslogSender {
     Tcp(TcpSender),
     Udp(UdpSender),
     Broadcast(BroadcastSender),
+    #[cfg(feature = "native-tls")]
+    Tls(TlsSender),
     #[cfg(unix)]
     UnixDatagram(UnixDatagramSender),
     #[cfg(unix)]
@@ -56,6 +63,8 @@ impl SyslogSender {
             SyslogSender::Tcp(sender) => sender.send_rfc3164(severity, message),
             SyslogSender::Udp(sender) => sender.send_rfc3164(severity, message),
             SyslogSender::Broadcast(sender) => sender.send_rfc3164(severity, message),
+            #[cfg(feature = "native-tls")]
+            SyslogSender::Tls(sender) => sender.send_rfc3164(severity, message),
             #[cfg(unix)]
             SyslogSender::UnixDatagram(sender) => sender.send_rfc3164(severity, message),
             #[cfg(unix)]
@@ -77,6 +86,8 @@ impl SyslogSender {
             SyslogSender::Broadcast(sender) => {
                 sender.send_rfc5424(severity, msgid, elements, message)
             }
+            #[cfg(feature = "native-tls")]
+            SyslogSender::Tls(sender) => sender.send_rfc5424(severity, msgid, elements, message),
             #[cfg(unix)]
             SyslogSender::UnixDatagram(sender) => {
                 sender.send_rfc5424(severity, msgid, elements, message)
@@ -94,6 +105,8 @@ impl SyslogSender {
             SyslogSender::Tcp(sender) => sender.send_formatted(formatted),
             SyslogSender::Udp(sender) => sender.send_formatted(formatted),
             SyslogSender::Broadcast(sender) => sender.send_formatted(formatted),
+            #[cfg(feature = "native-tls")]
+            SyslogSender::Tls(sender) => sender.send_formatted(formatted),
             #[cfg(unix)]
             SyslogSender::UnixDatagram(sender) => sender.send_formatted(formatted),
             #[cfg(unix)]
@@ -114,6 +127,8 @@ impl SyslogSender {
         match self {
             SyslogSender::Tcp(sender) => sender.flush(),
             SyslogSender::Udp(_) | SyslogSender::Broadcast(_) => Ok(()),
+            #[cfg(feature = "native-tls")]
+            SyslogSender::Tls(sender) => sender.flush(),
             #[cfg(unix)]
             SyslogSender::UnixDatagram(_) => Ok(()),
             #[cfg(unix)]

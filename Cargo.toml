@@ -30,8 +30,14 @@ all-features = true
 cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
 rustdoc-args = ["--cfg", "docsrs"]
 
+[features]
+native-tls = ["dep:native-tls"]
+
 [dependencies]
 jiff = { version = "0.1.14" }
+
+# Optional dependencies
+native-tls = { version = "0.2.12", optional = true }
 
 [target.'cfg(unix)'.dependencies]
 cfg-if = { version = "1.0.0" }
@@ -47,6 +53,12 @@ names = { version = "0.14.0", default-features = false }
 doc-scrape-examples = true
 name = "tcp_sender"
 path = "examples/tcp_sender.rs"
+
+[[example]]
+doc-scrape-examples = true
+name = "tls_sender"
+path = "examples/tls_sender.rs"
+required-features = ["native-tls"]
 
 [[example]]
 doc-scrape-examples = true
