@@ -24,7 +24,7 @@ Client library written in Rust to send messages to a Syslog server. Support impl
 * RFC-5424 Formatter: [The Syslog Protocol](https://datatracker.ietf.org/doc/html/rfc5424)
 * `UdpSender`: [RFC 5426 - Transmission of Syslog Messages over UDP](https://datatracker.ietf.org/doc/html/rfc5426)
 * `TcpSender`: [RFC 6587 - Transmission of Syslog Messages over TCP](https://datatracker.ietf.org/doc/html/rfc6587)
-* `TlsSender`: [RFC 5425 - Transport Layer Security (TLS) Transport Mapping for Syslog](https://datatracker.ietf.org/doc/html/rfc5425)
+* `NativeTlsSender`: [RFC 5425 - Transport Layer Security (TLS) Transport Mapping for Syslog](https://datatracker.ietf.org/doc/html/rfc5425)
   * This implementation is based on [`native-tls`](https://crates.io/crates/native-tls) and requires features `native-tls` turned on.
 * (unix only) Unix domain socket sender (datagram or stream)
 

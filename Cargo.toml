@@ -51,24 +51,24 @@ names = { version = "0.14.0", default-features = false }
 
 [[example]]
 doc-scrape-examples = true
+name = "broadcast_sender"
+path = "examples/broadcast_sender.rs"
+
+[[example]]
+doc-scrape-examples = true
+name = "native_tls_sender"
+path = "examples/native_tls_sender.rs"
+required-features = ["native-tls"]
+
+[[example]]
+doc-scrape-examples = true
 name = "tcp_sender"
 path = "examples/tcp_sender.rs"
 
 [[example]]
 doc-scrape-examples = true
-name = "tls_sender"
-path = "examples/tls_sender.rs"
-required-features = ["native-tls"]
-
-[[example]]
-doc-scrape-examples = true
 name = "udp_sender"
 path = "examples/udp_sender.rs"
-
-[[example]]
-doc-scrape-examples = true
-name = "broadcast_sender"
-path = "examples/broadcast_sender.rs"
 
 [[example]]
 doc-scrape-examples = true

@@ -31,36 +31,40 @@ use crate::sender::internal::impl_syslog_stream_send_formatted;
 /// See also [RFC-5425] §4.1 Port Assignment.
 ///
 /// [RFC-5425]: https://datatracker.ietf.org/doc/html/rfc5425#section-4.1
-pub fn tls_well_known<S: AsRef<str>>(domain: S) -> io::Result<TlsSender> {
+pub fn native_tls_well_known<S: AsRef<str>>(domain: S) -> io::Result<NativeTlsSender> {
     let domain = domain.as_ref();
-    tls(format!("{domain}:6514"), domain)
+    native_tls(format!("{domain}:6514"), domain)
 }
 
 /// Create a TLS sender that sends messages to the given address.
-pub fn tls<A: ToSocketAddrs, S: AsRef<str>>(addr: A, domain: S) -> io::Result<TlsSender> {
-    tls_with(addr, domain, TlsConnector::builder())
+pub fn native_tls<A: ToSocketAddrs, S: AsRef<str>>(
+    addr: A,
+    domain: S,
+) -> io::Result<NativeTlsSender> {
+    native_tls_with(addr, domain, TlsConnector::builder())
 }
 
 /// Create a TLS sender that sends messages to the given address with certificate builder.
-pub fn tls_with<A: ToSocketAddrs, S: AsRef<str>>(
+pub fn native_tls_with<A: ToSocketAddrs, S: AsRef<str>>(
     addr: A,
     domain: S,
     builder: TlsConnectorBuilder,
-) -> io::Result<TlsSender> {
-    TlsSender::connect(addr, domain, builder)
+) -> io::Result<NativeTlsSender> {
+    NativeTlsSender::connect(addr, domain, builder)
 }
 
 /// A syslog sender that sends messages to a TCP socket over TLS.
 ///
-/// Users can obtain a `TlsSender` by calling [`tls_well_known`], [`tls`], or [`tls_with`].
+/// Users can obtain a `TlsSender` by calling [`native_tls_well_known`], [`native_tls`], or
+/// [`native_tls_with`].
 #[derive(Debug)]
-pub struct TlsSender {
+pub struct NativeTlsSender {
     writer: BufWriter<TlsStream<TcpStream>>,
     context: SyslogContext,
     postfix: Cow<'static, str>,
 }
 
-impl TlsSender {
+impl NativeTlsSender {
     /// Connect to a TCP socket over TLS at the given address.
     pub fn connect<A: ToSocketAddrs, S: AsRef<str>>(
         addr: A,
@@ -100,5 +104,5 @@ impl TlsSender {
     }
 }
 
-impl_syslog_sender_common!(TlsSender);
-impl_syslog_stream_send_formatted!(TlsSender);
+impl_syslog_sender_common!(NativeTlsSender);
+impl_syslog_stream_send_formatted!(NativeTlsSender);
