@@ -55,8 +55,8 @@ pub fn native_tls_with<A: ToSocketAddrs, S: AsRef<str>>(
 
 /// A syslog sender that sends messages to a TCP socket over TLS.
 ///
-/// Users can obtain a `TlsSender` by calling [`native_tls_well_known`], [`native_tls`], or
-/// [`native_tls_with`].
+/// Users can obtain a `TlsSender` by calling [`native_tls_well_known()`], [`native_tls()`],
+/// or [`native_tls_with()`].
 #[derive(Debug)]
 pub struct NativeTlsSender {
     writer: BufWriter<TlsStream<TcpStream>>,
