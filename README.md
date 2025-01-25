@@ -26,6 +26,8 @@ Client library written in Rust to send messages to a Syslog server. Support impl
 * `TcpSender`: [RFC 6587 - Transmission of Syslog Messages over TCP](https://datatracker.ietf.org/doc/html/rfc6587)
 * `NativeTlsSender`: [RFC 5425 - Transport Layer Security (TLS) Transport Mapping for Syslog](https://datatracker.ietf.org/doc/html/rfc5425)
   * This implementation is based on [`native-tls`](https://crates.io/crates/native-tls) and requires features `native-tls` turned on.
+* `RustlsSender`: [RFC 5425 - Transport Layer Security (TLS) Transport Mapping for Syslog](https://datatracker.ietf.org/doc/html/rfc5425)
+    * This implementation is based on [`rustls`](https://crates.io/crates/rustls) and requires features `rustls` turned on.
 * (unix only) Unix domain socket sender (datagram or stream)
 
 ## Getting Started

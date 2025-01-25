@@ -27,6 +27,9 @@
 //! * [`NativeTlsSender`]: [RFC 5425 - Transport Layer Security (TLS) Transport Mapping for Syslog](https://datatracker.ietf.org/doc/html/rfc5425)
 //!   * This implementation is based on [`native-tls`](https://crates.io/crates/native-tls) and
 //!     requires features `native-tls` turned on.
+//! * [`RustlsSender`]: [RFC 5425 - Transport Layer Security (TLS) Transport Mapping for Syslog](https://datatracker.ietf.org/doc/html/rfc5425)
+//!   * This implementation is based on [`rustls`](https://crates.io/crates/rustls) and requires
+//!     features `rustls` turned on.
 //! * (unix only) Unix domain socket sender (datagram or stream)
 //!
 //! [RFC-3164 Formatter]: format::RFC3164Formatter
@@ -34,6 +37,7 @@
 //! [`UdpSender`]: sender::UdpSender
 //! [`TcpSender`]: sender::TcpSender
 //! [`NativeTlsSender`]: sender::NativeTlsSender
+//! [`RustlsSender`]: sender::RustlsSender
 //!
 //! # Example
 //!
