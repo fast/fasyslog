@@ -21,20 +21,25 @@ use crate::SDElement;
 use crate::Severity;
 
 #[cfg(unix)]
-mod unix;
+mod unix_impl;
 #[cfg(unix)]
-pub use unix::*;
+pub use unix_impl::*;
 
 #[cfg(feature = "native-tls")]
-mod native_tls;
+mod native_tls_impl;
 #[cfg(feature = "native-tls")]
-pub use native_tls::*;
+pub use native_tls_impl::*;
 
-mod tcp;
-pub use tcp::*;
+#[cfg(feature = "rustls")]
+mod rustls_impl;
+#[cfg(feature = "rustls")]
+pub use rustls_impl::*;
 
-mod udp;
-pub use udp::*;
+mod tcp_impl;
+pub use tcp_impl::*;
+
+mod udp_impl;
+pub use udp_impl::*;
 
 pub(crate) mod internal;
 
@@ -45,6 +50,8 @@ pub enum SyslogSender {
     Udp(UdpSender),
     #[cfg(feature = "native-tls")]
     NativeTlsSender(NativeTlsSender),
+    #[cfg(feature = "rustls")]
+    RustlsSender(Box<RustlsSender>),
     #[cfg(unix)]
     UnixDatagram(UnixDatagramSender),
     #[cfg(unix)]
@@ -63,6 +70,8 @@ impl SyslogSender {
             SyslogSender::Udp(sender) => sender.send_rfc3164(severity, message),
             #[cfg(feature = "native-tls")]
             SyslogSender::NativeTlsSender(sender) => sender.send_rfc3164(severity, message),
+            #[cfg(feature = "rustls")]
+            SyslogSender::RustlsSender(sender) => sender.send_rfc3164(severity, message),
             #[cfg(unix)]
             SyslogSender::UnixDatagram(sender) => sender.send_rfc3164(severity, message),
             #[cfg(unix)]
@@ -85,6 +94,10 @@ impl SyslogSender {
             SyslogSender::NativeTlsSender(sender) => {
                 sender.send_rfc5424(severity, msgid, elements, message)
             }
+            #[cfg(feature = "rustls")]
+            SyslogSender::RustlsSender(sender) => {
+                sender.send_rfc5424(severity, msgid, elements, message)
+            }
             #[cfg(unix)]
             SyslogSender::UnixDatagram(sender) => {
                 sender.send_rfc5424(severity, msgid, elements, message)
@@ -103,6 +116,8 @@ impl SyslogSender {
             SyslogSender::Udp(sender) => sender.send_formatted(formatted),
             #[cfg(feature = "native-tls")]
             SyslogSender::NativeTlsSender(sender) => sender.send_formatted(formatted),
+            #[cfg(feature = "rustls")]
+            SyslogSender::RustlsSender(sender) => sender.send_formatted(formatted),
             #[cfg(unix)]
             SyslogSender::UnixDatagram(sender) => sender.send_formatted(formatted),
             #[cfg(unix)]
@@ -125,6 +140,8 @@ impl SyslogSender {
             SyslogSender::Udp(_) => Ok(()),
             #[cfg(feature = "native-tls")]
             SyslogSender::NativeTlsSender(sender) => sender.flush(),
+            #[cfg(feature = "rustls")]
+            SyslogSender::RustlsSender(sender) => sender.flush(),
             #[cfg(unix)]
             SyslogSender::UnixDatagram(_) => Ok(()),
             #[cfg(unix)]

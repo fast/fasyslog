@@ -15,11 +15,11 @@
 use fasyslog::Severity;
 
 fn main() {
-    let mut sender = fasyslog::sender::native_tls_well_known("127.0.0.1").unwrap();
+    let mut sender = fasyslog::sender::rustls_well_known("127.0.0.1").unwrap();
     let mut generator = names::Generator::default();
     for _ in 0..100 {
         let name = generator.next().unwrap();
-        let message = format!("Hello, native-tls with {name}!");
+        let message = format!("Hello, rustls with {name}!");
         sender
             .send_rfc5424(Severity::ERROR, None::<String>, Vec::new(), message)
             .unwrap();
