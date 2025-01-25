@@ -12,15 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+pub extern crate rustls;
+
 use std::borrow::Cow;
 use std::io;
 use std::io::BufWriter;
 use std::net::TcpStream;
 use std::net::ToSocketAddrs;
+use std::sync::Arc;
 
-use native_tls::TlsConnector;
-use native_tls::TlsConnectorBuilder;
-use native_tls::TlsStream;
+use rustls::pki_types::ServerName;
+use rustls::ClientConfig;
+use rustls::ClientConnection;
+use rustls::RootCertStore;
+use rustls::StreamOwned;
 
 use crate::format::SyslogContext;
 use crate::sender::internal::impl_syslog_sender_common;
@@ -31,52 +36,57 @@ use crate::sender::internal::impl_syslog_stream_send_formatted;
 /// See also [RFC-5425] §4.1 Port Assignment.
 ///
 /// [RFC-5425]: https://datatracker.ietf.org/doc/html/rfc5425#section-4.1
-pub fn native_tls_well_known<S: AsRef<str>>(domain: S) -> io::Result<NativeTlsSender> {
-    let domain = domain.as_ref();
-    native_tls(format!("{domain}:6514"), domain)
+pub fn rustls_well_known<S: Into<String>>(domain: S) -> io::Result<RustlsSender> {
+    let domain = domain.into();
+    rustls(format!("{domain}:6514"), domain)
 }
 
 /// Create a TLS sender that sends messages to the given address.
-pub fn native_tls<A: ToSocketAddrs, S: AsRef<str>>(
-    addr: A,
-    domain: S,
-) -> io::Result<NativeTlsSender> {
-    native_tls_with(addr, domain, TlsConnector::builder())
+pub fn rustls<A: ToSocketAddrs, S: Into<String>>(addr: A, domain: S) -> io::Result<RustlsSender> {
+    let mut roots = RootCertStore::empty();
+    for cert in rustls_native_certs::load_native_certs().certs {
+        roots.add(cert).unwrap();
+    }
+
+    let config = ClientConfig::builder()
+        .with_root_certificates(roots)
+        .with_no_client_auth();
+
+    rustls_with(addr, domain, Arc::new(config))
 }
 
 /// Create a TLS sender that sends messages to the given address with certificate builder.
-pub fn native_tls_with<A: ToSocketAddrs, S: AsRef<str>>(
+pub fn rustls_with<A: ToSocketAddrs, S: Into<String>>(
     addr: A,
     domain: S,
-    builder: TlsConnectorBuilder,
-) -> io::Result<NativeTlsSender> {
-    NativeTlsSender::connect(addr, domain, builder)
+    config: Arc<ClientConfig>,
+) -> io::Result<RustlsSender> {
+    RustlsSender::connect(addr, domain, config)
 }
 
 /// A syslog sender that sends messages to a TCP socket over TLS.
 ///
-/// Users can obtain a `TlsSender` by calling [`native_tls_well_known()`], [`native_tls()`],
-/// or [`native_tls_with()`].
+/// Users can obtain a `RustlsSender` by calling [`rustls_well_known()`], [`rustls()`],
+/// or [`rustls_with()`].
 #[derive(Debug)]
-pub struct NativeTlsSender {
-    writer: BufWriter<TlsStream<TcpStream>>,
+pub struct RustlsSender {
+    writer: BufWriter<StreamOwned<ClientConnection, TcpStream>>,
     context: SyslogContext,
     postfix: Cow<'static, str>,
 }
 
-impl NativeTlsSender {
+impl RustlsSender {
     /// Connect to a TCP socket over TLS at the given address.
-    pub fn connect<A: ToSocketAddrs, S: AsRef<str>>(
+    pub fn connect<A: ToSocketAddrs, S: Into<String>>(
         addr: A,
         domain: S,
-        builder: TlsConnectorBuilder,
+        config: Arc<ClientConfig>,
     ) -> io::Result<Self> {
-        let domain = domain.as_ref();
+        let domain = domain.into();
+        let domain = ServerName::try_from(domain).map_err(io::Error::other)?;
         let stream = TcpStream::connect(addr)?;
-        let connector = builder.build().map_err(io::Error::other)?;
-        let stream = connector
-            .connect(domain, stream)
-            .map_err(io::Error::other)?;
+        let conn = ClientConnection::new(config, domain).map_err(io::Error::other)?;
+        let stream = StreamOwned::new(conn, stream);
         Ok(Self {
             writer: BufWriter::new(stream),
             context: SyslogContext::default(),
@@ -104,5 +114,5 @@ impl NativeTlsSender {
     }
 }
 
-impl_syslog_sender_common!(NativeTlsSender);
-impl_syslog_stream_send_formatted!(NativeTlsSender);
+impl_syslog_sender_common!(RustlsSender);
+impl_syslog_stream_send_formatted!(RustlsSender);
