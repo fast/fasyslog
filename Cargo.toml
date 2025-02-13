@@ -14,7 +14,7 @@
 
 [package]
 name = "fasyslog"
-version = "0.3.1"
+version = "0.3.2"
 
 categories = ["development-tools::debugging"]
 description = "A fast syslog client written in Rust."
@@ -35,7 +35,7 @@ native-tls = ["dep:native-tls"]
 rustls = ["dep:rustls", "dep:rustls-native-certs"]
 
 [dependencies]
-jiff = { version = "0.1.14" }
+jiff = { version = "0.2" }
 
 # Optional dependencies
 native-tls = { version = "0.2.12", optional = true }
