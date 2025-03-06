@@ -14,7 +14,7 @@
 
 [package]
 name = "fasyslog"
-version = "0.3.2"
+version = "1.0.0"
 
 categories = ["development-tools::debugging"]
 description = "A fast syslog client written in Rust."
