@@ -162,7 +162,7 @@ where
             write!(f, "[{procid}]")?;
         }
         if let Some(message) = &self.message {
-            write!(f, ": {}", message)?;
+            write!(f, ": {message}")?;
         }
         Ok(())
     }
@@ -210,7 +210,7 @@ where
             }
         }
         if let Some(message) = &self.message {
-            write!(f, " {}", message)?;
+            write!(f, " {message}")?;
         }
         Ok(())
     }
