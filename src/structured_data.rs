@@ -172,7 +172,7 @@ impl fmt::Display for SDElement {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "[{}", self.id)?;
         for param in &self.params {
-            write!(f, " {}", param)?;
+            write!(f, " {param}")?;
         }
         write!(f, "]")
     }

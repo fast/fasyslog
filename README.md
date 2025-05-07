@@ -65,19 +65,13 @@ logforth = { version = "...", features = ["syslog"] }
 ```
 
 ```rust
-use logforth::append::syslog;
-use logforth::append::syslog::Syslog;
-use logforth::append::syslog::SyslogWriter;
+use logforth::append::syslog::SyslogBuilder;
 
 fn main() {
-    let syslog_writer = SyslogWriter::tcp_well_known().unwrap();
-    let (non_blocking, _guard) = syslog::non_blocking(syslog_writer).finish();
+    let (append, _guard) = SyslogBuilder::tcp_well_known().unwrap().build();
 
     logforth::builder()
-        .dispatch(|d| {
-            d.filter(log::LevelFilter::Trace)
-                .append(Syslog::new(non_blocking))
-        })
+        .dispatch(|d| d.filter(log::LevelFilter::Trace).append(append))
         .apply();
 
     log::info!("This log will be written to syslog.");
