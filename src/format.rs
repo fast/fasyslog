@@ -96,7 +96,11 @@ impl SyslogContext {
     }
 
     /// Format the Syslog message with the given severity as defined in RFC-3164.
-    pub fn format_rfc3164<M>(&self, severity: Severity, message: Option<M>) -> RFC3164Formatter<M> {
+    pub fn format_rfc3164<M>(
+        &self,
+        severity: Severity,
+        message: Option<M>,
+    ) -> RFC3164Formatter<'_, M> {
         RFC3164Formatter {
             context: self,
             severity,
@@ -111,7 +115,7 @@ impl SyslogContext {
         msgid: Option<S>,
         elements: Vec<SDElement>,
         message: Option<M>,
-    ) -> RFC5424Formatter<M>
+    ) -> RFC5424Formatter<'_, M>
     where
         S: Into<String>,
         M: fmt::Display,
